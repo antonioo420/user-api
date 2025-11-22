@@ -13,7 +13,6 @@ Proyecto demo construido con Spring Boot 3 (Java 17). Usa H2 en memoria para per
 - Spring Web, Spring Data JPA, Spring Security
 - H2 (base de datos en memoria)
 - JJWT (io.jsonwebtoken) para tokens JWT
-- Lombok (opcional en dependencias)
 - Maven (con `mvnw` wrapper)
 
 ## Estructura del proyecto
@@ -91,6 +90,49 @@ Usando el wrapper de Maven incluido (recomendado):
 ```
 
 La API por defecto estará en `http://localhost:8080/`.
+
+## Ejemplos de curl: `api_test.sh`
+
+Hay un script de pruebas incluido en la raíz del proyecto llamado `api_test.sh` que realiza una serie de llamadas HTTP para comprobar los endpoints principales (registro, login, endpoints públicos y protegidos, operaciones de administración y casos de error).
+
+Requisitos
+- `curl` (para hacer las peticiones HTTP)
+- `jq` (opcional, para formatear JSON en la salida; si no está instalado verás JSON crudo)
+- La aplicación corriendo en `http://localhost:8080/` (o modificar el script para apuntar a otra URL)
+
+Hacer ejecutable y ejecutar
+
+```bash
+chmod +x api_test.sh
+./api_test.sh
+```
+
+Qué hace `api_test.sh` (resumen)
+- Define `BASE_URL` (por defecto `http://localhost:8080`).
+- Registra dos usuarios normales con `/auth/register`:
+	- `antonito` (password: `12345678`)
+	- `maria` (password: `abcdefgh`)
+- Hace login con `antonito` para obtener `USER_TOKEN` y lo muestra.
+- Llama al endpoint protegido `/test/user` usando `USER_TOKEN` para comprobar acceso autenticado.
+- Llama al endpoint público `/test/all`.
+- Hace login con las credenciales de admin (`admin` / `admin123`) para obtener `ADMIN_TOKEN`.
+- Lista todos los usuarios con `/users` usando `ADMIN_TOKEN`.
+- Recupera el `id` del usuario `antonito` (hace un login y extrae `.id`) y pide `/users/{id}` con `ADMIN_TOKEN`.
+- Elimina ese usuario con `DELETE /users/{id}` usando `ADMIN_TOKEN` y vuelve a listar usuarios para mostrar el cambio.
+- Ejecuta varios casos de error para comprobar excepciones:
+	- login con usuario inexistente
+	- login con contraseña incorrecta
+	- intento de acceder a `/users` con el token de un usuario normal (permiso insuficiente)
+	- comprobación de cabeceras en `/test/user` sin token
+
+Salida y formato
+- El script hace uso de `jq` para imprimir JSON con formato; si `jq` no está disponible, la salida será JSON sin formatear.
+
+## Postman
+También se incluye el archivo postman.html que contiene una collection con todos los tipos de peticiones que se le pueden realizar a la aplicación.
+
+Nota:
+Para utilizar tokens en las peticiones se incluyen en la parte de Auth, y el tipo de autenticación a elegir será Bearer Token. 
 
 ## Notas de seguridad y mejoras sugeridas
 
