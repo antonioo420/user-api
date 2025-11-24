@@ -79,7 +79,7 @@ Usar estas credenciales para obtener un token y probar los endpoints `/users/**`
 
 ## Cómo compilar y ejecutar
 
-Antes de poder ejecutar el proyecto es necesario instalar [Java 17]([https://ejemplo.com](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html).
+Antes de poder ejecutar el proyecto es necesario instalar [Java 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html).
 
 Usando el wrapper de Maven incluido (recomendado):
 
