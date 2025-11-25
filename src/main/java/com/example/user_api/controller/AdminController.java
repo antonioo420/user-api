@@ -22,14 +22,14 @@ public class AdminController {
     @GetMapping
     public List<UserResponse> getAll() {
         return userService.getAllUsers().stream()
-                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreationDate(), "token"))
+                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreationDate(), ""))
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public UserResponse getById(@PathVariable UUID id) {
         User user = userService.getUserById(id);
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreationDate(), "token");
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreationDate(), "");
     }
 
     @DeleteMapping("/{id}")

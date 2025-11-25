@@ -68,6 +68,37 @@ Autenticación: incluir header `Authorization: Bearer <token>` para endpoints pr
 
 Estos valores están colocados en `src/main/resources/application.properties` para esta demo. En producción, usar variables de entorno o un vault y una clave segura.
 
+## Tokens JWT
+
+Este proyecto usa JWT (JSON Web Tokens) para autenticar peticiones. A grandes rasgos:
+
+- El servicio de autenticación (`AuthServiceImpl`) genera un token llamando a `jwtService.generateToken(username)` al hacer login o register. En esta implementación el token se genera usando el `username` como subject/claim principal.
+- La configuración relevante está en `application.properties`:
+	- `JWT_SECRET` — clave secreta usada para firmar los tokens. No dejarla en el repositorio en producción.
+	- `JWT_EXPIRATION` — tiempo de expiración en milisegundos.
+
+Estructura y uso
+- Un JWT tiene la forma `HEADER.PAYLOAD.SIGNATURE`. El payload incluye claims como `sub` (subject, aquí el username) y `exp` (expiración).
+- Para acceder a endpoints protegidos hay que enviar el header HTTP:
+
+	Authorization: Bearer <token>
+
+Ejemplo con curl (suponiendo que ya obtuviste el token al hacer POST `/auth/login`):
+
+```bash
+curl -H "Authorization: Bearer eyJhbGciOi..." http://localhost:8080/test/user
+```
+
+Decodificación y debug
+- Puedes pegar el token en https://jwt.io/ para ver el header y payload (no compartas tu `JWT_SECRET`).
+
+Buenas prácticas y limitaciones de esta demo
+- No hay refresh token implementado; los tokens expiran según `JWT_EXPIRATION` y la única forma de obtener uno nuevo es volver a autenticarse.
+- En esta demo el token contiene únicamente el username como identificador (subject). En producción conviene añadir claims de roles/authorities y evitar lógica de permisos basada en el username (por ejemplo, comparar `username.equals("admin")`).
+- Siempre usar HTTPS en producción para evitar que los tokens sean interceptados.
+- No almacenar secretos en el repositorio. Pásalos al contenedor o a un secret manager (por ejemplo, via `-e JWT_SECRET=...` en Docker, variables de entorno en Kubernetes, o un vault).
+
+
 ## Credenciales por defecto
 
 Al iniciar la aplicación, el `CommandLineRunner` crea un usuario administrador si no existe:
