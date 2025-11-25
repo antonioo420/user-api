@@ -15,6 +15,56 @@ Proyecto demo construido con Spring Boot 3 (Java 17). Usa H2 en memoria para per
 - JJWT (io.jsonwebtoken) para tokens JWT
 - Maven (con `mvnw` wrapper)
 
+## Principales decisiones
+
+### Endpoints públicos y autenticados
+
+Con el fin de dar un poco de realismo a la API, se ha realizado una división de los endpoints en públicos (no requieren autenticación) y privados (requieren autenticación):
+
+- Endpoints públicos:
+  	- `/test/all`
+  	- `/auth/login` 
+  	- `/auth/register`
+- Endpoints privados:
+  	- `/test/user`
+  	- `/users/*` Además requiere ser el usuario admin.
+
+Los endpoints escogidos públicos son aquellos en los que el usuario no va a estar aún registrado o logeado (`/auth/login` y `/auth/register`) o por el contrario ha accedido a un punto público de la aplicación, como podría ser una página de bienvenida (`/test/all`).
+
+Los endpoints privados son aquellos que necesitan de autenticación del usuario para acceder a él (`/test/user/`) o bien son endpoints que devuelven información sensible de otros usuarios (`/users/`), o permiten borrar los mismos (`DELETE /users/{id}`)
+
+La autenticación se realiza mediante tokens JWT.
+
+### Admin y usuario
+
+Como se menciona en el punto anterior, para acceder al endpoint `/user/*` es necesario ser el usuario admin. Este usuario es creado al iniciar la aplicación con los siguientes credenciales:
+
+- usuario: `admin`
+- contraseña: `admin123`
+
+Con estas credenciales se puede hacer login y así obtener el token para acceder al endpoint `/users/*`, y así poder listar todos los usuarios, obtener usuarios por ID, y borrar usuarios. 
+
+## Tokens JWT
+
+Este proyecto usa JWT (JSON Web Tokens) para autenticar peticiones. A grandes rasgos:
+
+- El servicio de autenticación (`AuthServiceImpl`) genera un token llamando a `jwtService.generateToken(username)` al hacer login o register. En esta implementación el token se genera usando el `username` como subject/claim principal.
+- La configuración relevante está en `application.properties`:
+	- `JWT_SECRET` — clave secreta usada para firmar los tokens. No dejarla en el repositorio en producción.
+	- `JWT_EXPIRATION` — tiempo de expiración en milisegundos.
+
+### Uso
+
+- Para acceder a endpoints protegidos hay que enviar el header HTTP:
+
+	Authorization: Bearer <token>
+
+Ejemplo con curl (suponiendo que ya obtuviste el token al hacer POST `/auth/login`):
+
+```bash
+curl -H "Authorization: Bearer eyJhbGciOi..." http://localhost:8080/test/user
+```
+
 ## Estructura del proyecto
 
 Raíz: `src/main/java/com/example/user_api`
@@ -66,38 +116,48 @@ Autenticación: incluir header `Authorization: Bearer <token>` para endpoints pr
 - `JWT_SECRET` — clave secreta para firmar tokens (en `application.properties` en este repo está definida una clave de ejemplo).
 - `JWT_EXPIRATION` — tiempo en ms de expiración del token (por ejemplo `3600000` = 1 hora).
 
-Estos valores están colocados en `src/main/resources/application.properties` para esta demo. En producción, usar variables de entorno o un vault y una clave segura.
+Estos valores están colocados en `src/main/resources/application.properties` para esta demo. En producción, será preciso usar variables de entorno o un vault y una clave segura.
 
-## Credenciales por defecto
+## Ejecución
 
-Al iniciar la aplicación, el `CommandLineRunner` crea un usuario administrador si no existe:
-
-- usuario: `admin`
-- contraseña: `admin123`
-
-Usar estas credenciales para obtener un token y probar los endpoints `/users/**`.
-
-## Cómo compilar y ejecutar
+### Compilación y ejecución local
 
 Antes de poder ejecutar el proyecto es necesario instalar [Java 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html).
 
 Usando el wrapper de Maven incluido (recomendado):
 
 ```bash
-# compilar
+# Compilación
 ./mvnw clean install 
 
-# ejecutar con Spring Boot
+# Ejecución
 ./mvnw spring-boot:run
 ```
 
 La API por defecto estará en `http://localhost:8080/`.
 
+### Despliegue en Docker
+
+Como segunda opción también se puede desplegar un contenedor que compilará el código fuente, generará un archivo `.jar` ejecutable, y lo ejecutará.
+
+Es necesario tener docker instalado en el equipo:
+
+```bash
+# Construcción de la imagen docker user-api
+sudo docker build -t user-api .
+
+# Ejecución del contenedor
+sudo docker run -p 8080:8080 user-api
+```
+
+Al igual que en la compilación local, la API estará en `http://localhost:8080/`.
+
 ## Ejemplos de curl: `api_test.sh`
 
-Hay un script de pruebas incluido en la raíz del proyecto llamado `api_test.sh` que realiza una serie de llamadas HTTP para comprobar los endpoints principales (registro, login, endpoints públicos y protegidos, operaciones de administración y casos de error).
+Hay un script de pruebas escrito en bash incluido en la raíz del proyecto llamado `api_test.sh` que realiza una serie de llamadas HTTP para comprobar los endpoints principales (registro, login, endpoints públicos y protegidos, operaciones de administración y casos de error).
 
 Requisitos
+- En el caso de utilizar Windows, es necesario [WSL](https://learn.microsoft.com/es-es/windows/wsl/install).
 - `curl` (para hacer las peticiones HTTP)
 - `jq` (opcional, para formatear JSON en la salida; si no está instalado verás JSON crudo)
 - La aplicación corriendo en `http://localhost:8080/` (o modificar el script para apuntar a otra URL)
@@ -136,11 +196,11 @@ También se incluye el archivo postman.html que contiene una collection con todo
 Nota:
 Para utilizar tokens en las peticiones se incluyen en la parte de Auth, y el tipo de autenticación a elegir será Bearer Token. 
 
-## Notas de seguridad y mejoras sugeridas
-
-- No usar la clave `JWT_SECRET` que aparece en el `application.properties` en producción.
-- Añadir roles/authorities más robustos en lugar de comparar `username.equals("admin")`.
-- Añadir validaciones DTO más completas y manejo de excepciones centralizado (ya existe una base en `exception/`).
+## Buenas prácticas y limitaciones de esta demo
+- No hay refresh token implementado; los tokens expiran según `JWT_EXPIRATION` y la única forma de obtener uno nuevo es volver a autenticarse.
+- En esta demo el token contiene únicamente el username como identificador (subject). En producción conviene añadir claims de roles/authorities y evitar lógica de permisos basada en el username (por ejemplo, comparar `username.equals("admin")`).
+- Siempre usar HTTPS en producción para evitar que los tokens sean interceptados.
+- No almacenar claves en el repositorio.
+   Añadir validaciones DTO más completas y manejo de excepciones centralizado (ya existe una base en `exception/`).
 - Persistencia H2: para producción configurar una base de datos real y ajustes de JPA/Hibernate.
-
 
