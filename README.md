@@ -44,7 +44,7 @@ Como se menciona en el punto anterior, para acceder al endpoint `/user/*` es nec
 
 Con estas credenciales se puede hacer login y así obtener el token para acceder al endpoint `/users/*`, y así poder listar todos los usuarios, obtener usuarios por ID, y borrar usuarios. 
 
-## Tokens JWT
+### Tokens JWT
 
 Este proyecto usa JWT (JSON Web Tokens) para autenticar peticiones. A grandes rasgos:
 
@@ -53,7 +53,7 @@ Este proyecto usa JWT (JSON Web Tokens) para autenticar peticiones. A grandes ra
 	- `JWT_SECRET` — clave secreta usada para firmar los tokens. No dejarla en el repositorio en producción.
 	- `JWT_EXPIRATION` — tiempo de expiración en milisegundos.
 
-### Uso
+#### Uso
 
 - Para acceder a endpoints protegidos hay que enviar el header HTTP:
 
@@ -64,6 +64,16 @@ Ejemplo con curl (suponiendo que ya obtuviste el token al hacer POST `/auth/logi
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOi..." http://localhost:8080/test/user
 ```
+
+## Endpoints
+
+- POST `/auth/login` — Body: `LoginRequest` (username, password). Responde `UserResponse` con token JWT en el último campo.
+- POST `/auth/register` — Body: `RegisterRequest` (username, email, password). Crea usuario y devuelve `UserResponse` con token.
+- GET `/test/all` — público
+- GET `/test/user` — requiere autenticación (token)
+- GET `/users` — requiere ser admin (ver `SecurityConfig`): lista de usuarios
+- GET `/users/{id}` — requiere admin: obtiene usuario por id
+- DELETE `/users/{id}` — requiere admin: borra usuario
 
 ## Estructura del proyecto
 
@@ -99,18 +109,6 @@ Raíz: `src/main/java/com/example/user_api`
 - `resources/` — Recursos
 	- `application.properties` — configuración (ej., `JWT_SECRET`, `JWT_EXPIRATION`)
 
-## Endpoints
-
-- POST `/auth/login` — Body: `LoginRequest` (username, password). Responde `UserResponse` con token JWT en el último campo.
-- POST `/auth/register` — Body: `RegisterRequest` (username, email, password). Crea usuario y devuelve `UserResponse` con token.
-- GET `/test/all` — público
-- GET `/test/user` — requiere autenticación (token)
-- GET `/users` — requiere ser admin (ver `SecurityConfig`): lista de usuarios
-- GET `/users/{id}` — requiere admin: obtiene usuario por id
-- DELETE `/users/{id}` — requiere admin: borra usuario
-
-Autenticación: incluir header `Authorization: Bearer <token>` para endpoints protegidos.
-
 ## Variables de entorno / configuración
 
 - `JWT_SECRET` — clave secreta para firmar tokens (en `application.properties` en este repo está definida una clave de ejemplo).
@@ -118,42 +116,7 @@ Autenticación: incluir header `Authorization: Bearer <token>` para endpoints pr
 
 Estos valores están colocados en `src/main/resources/application.properties` para esta demo. En producción, será preciso usar variables de entorno o un vault y una clave segura.
 
-<<<<<<< HEAD
-## Tokens JWT
-
-Este proyecto usa JWT (JSON Web Tokens) para autenticar peticiones. A grandes rasgos:
-
-- El servicio de autenticación (`AuthServiceImpl`) genera un token llamando a `jwtService.generateToken(username)` al hacer login o register. En esta implementación el token se genera usando el `username` como subject/claim principal.
-- La configuración relevante está en `application.properties`:
-	- `JWT_SECRET` — clave secreta usada para firmar los tokens. No dejarla en el repositorio en producción.
-	- `JWT_EXPIRATION` — tiempo de expiración en milisegundos.
-
-Estructura y uso
-- Un JWT tiene la forma `HEADER.PAYLOAD.SIGNATURE`. El payload incluye claims como `sub` (subject, aquí el username) y `exp` (expiración).
-- Para acceder a endpoints protegidos hay que enviar el header HTTP:
-
-	Authorization: Bearer <token>
-
-Ejemplo con curl (suponiendo que ya obtuviste el token al hacer POST `/auth/login`):
-
-```bash
-curl -H "Authorization: Bearer eyJhbGciOi..." http://localhost:8080/test/user
-```
-
-Decodificación y debug
-- Puedes pegar el token en https://jwt.io/ para ver el header y payload (no compartas tu `JWT_SECRET`).
-
-Buenas prácticas y limitaciones de esta demo
-- No hay refresh token implementado; los tokens expiran según `JWT_EXPIRATION` y la única forma de obtener uno nuevo es volver a autenticarse.
-- En esta demo el token contiene únicamente el username como identificador (subject). En producción conviene añadir claims de roles/authorities y evitar lógica de permisos basada en el username (por ejemplo, comparar `username.equals("admin")`).
-- Siempre usar HTTPS en producción para evitar que los tokens sean interceptados.
-- No almacenar secretos en el repositorio. Pásalos al contenedor o a un secret manager (por ejemplo, via `-e JWT_SECRET=...` en Docker, variables de entorno en Kubernetes, o un vault).
-
-
-## Credenciales por defecto
-=======
 ## Ejecución
->>>>>>> 89022a470167a52a494657f9c712f60cf5e589fa
 
 ### Compilación y ejecución local
 
