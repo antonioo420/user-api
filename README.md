@@ -198,19 +198,19 @@ Para utilizar tokens en las peticiones se incluyen en la parte de Auth, y el tip
 
 Esta sección resume limitaciones importantes de la implementación actual.
 
-	- No hay refresh tokens ni mecanismo de revocación. Los tokens emitidos son válidos hasta su expiración.
+- No hay refresh tokens ni mecanismo de revocación. Los tokens emitidos son válidos hasta su expiración.
 
-	- El JWT incluye únicamente el `username` como subject. La autorización está implementada de forma muy básica (en `SecurityConfig` se considera admin si `username.equals("admin")`). Recomendación: almacenar roles/authorities en el modelo `User`, añadirlos al JWT y usar esas authorities en la configuración de seguridad.
+- El JWT incluye únicamente el `username` como subject. La autorización está implementada de forma muy básica (en `SecurityConfig` se considera admin si `username.equals("admin")`). Recomendación: almacenar roles/authorities en el modelo `User`, añadirlos al JWT y usar esas authorities en la configuración de seguridad.
 
-	- El `JWT_SECRET` actualmente se define en `application.properties` para la demo. No almacenar claves en el repositorio; usar variables de entorno, gestores de claves, y planear rotación de claves.
+- El `JWT_SECRET` actualmente se define en `application.properties` para la demo. No almacenar claves en el repositorio; usar variables de entorno, gestores de claves, y planear rotación de claves.
 
-	- Se usa H2 en memoria, lo que provoca pérdida de datos al reiniciar. Para producción configurar una base de datos externa.
+- Se usa H2 en memoria, lo que provoca pérdida de datos al reiniciar. Para producción configurar una base de datos externa.
 
-	- Las validaciones son básicas (por ejemplo, solo se comprueba la longitud mínima de la contraseña).
+- Las validaciones son básicas (por ejemplo, solo se comprueba la longitud mínima de la contraseña).
 
-	- No se fuerza HTTPS ni se configuran cabeceras de seguridad avanzadas (HSTS, CSP).No hay CORS personalizado.
+- No se fuerza HTTPS ni se configuran cabeceras de seguridad avanzadas (HSTS, CSP).No hay CORS personalizado.
 
-	- Logging, métricas y healthchecks son necesarios.Antes de producción crear tests unitarios e integrar pruebas de integración y E2E con una base de datos real.
+- Logging, métricas y healthchecks son necesarios.Antes de producción crear tests unitarios e integrar pruebas de integración y E2E con una base de datos real.
 
 ## Escalado 
 
