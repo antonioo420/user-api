@@ -194,11 +194,47 @@ También se incluye el archivo postman.html que contiene una collection con todo
 Nota:
 Para utilizar tokens en las peticiones se incluyen en la parte de Auth, y el tipo de autenticación a elegir será Bearer Token. 
 
-## Buenas prácticas y limitaciones de esta demo
-- No hay refresh token implementado; los tokens expiran según `JWT_EXPIRATION` y la única forma de obtener uno nuevo es volver a autenticarse.
-- En esta demo el token contiene únicamente el username como identificador (subject). En producción conviene añadir claims de roles/authorities y evitar lógica de permisos basada en el username (por ejemplo, comparar `username.equals("admin")`).
-- Siempre usar HTTPS en producción para evitar que los tokens sean interceptados.
-- No almacenar claves en el repositorio.
-   Añadir validaciones DTO más completas y manejo de excepciones centralizado (ya existe una base en `exception/`).
-- Persistencia H2: para producción configurar una base de datos real y ajustes de JPA/Hibernate.
+## Limitaciones de esta demo
+
+Esta sección resume limitaciones importantes de la implementación actual.
+
+	- No hay refresh tokens ni mecanismo de revocación. Los tokens emitidos son válidos hasta su expiración.
+
+	- El JWT incluye únicamente el `username` como subject. La autorización está implementada de forma muy básica (en `SecurityConfig` se considera admin si `username.equals("admin")`). Recomendación: almacenar roles/authorities en el modelo `User`, añadirlos al JWT y usar esas authorities en la configuración de seguridad.
+
+	- El `JWT_SECRET` actualmente se define en `application.properties` para la demo. No almacenar claves en el repositorio; usar variables de entorno, gestores de claves, y planear rotación de claves.
+
+	- Se usa H2 en memoria, lo que provoca pérdida de datos al reiniciar. Para producción configurar una base de datos externa.
+
+	- Las validaciones son básicas (por ejemplo, solo se comprueba la longitud mínima de la contraseña).
+
+	- No se fuerza HTTPS ni se configuran cabeceras de seguridad avanzadas (HSTS, CSP).No hay CORS personalizado.
+
+	- Logging, métricas y healthchecks son necesarios.Antes de producción crear tests unitarios e integrar pruebas de integración y E2E con una base de datos real.
+
+## Escalado 
+
+Con el fin de que esta aplicación soporte más usuarios o tráfico, se pueden seguir estos pasos:
+
+1) Docker Compose
+   - Usar `docker-compose` para levantar la app, una base de datos Postgres y Redis.
+   - En producción puedes usar un servicio sencillo como DigitalOcean Apps, AWS Fargate o el servicio de contenedores de tu proveedor.
+
+2) Cambiar H2 por base de datos
+   - Usa base de datos para tener una persistencia de los datos.
+
+3) Añadir caché si hay lecturas frecuentes
+   - Añadir Redis para cachear consultas comunes y reducir carga de la base de datos.
+
+4) Monitorización básica y logs
+   - Añadir health checks y logging. También conexión con Prometheus/Grafana si fuese necesario.
+
+5) Seguridad mínima para producción
+   - Asegurar el tráfico con HTTPS. Pasar `JWT_SECRET` y otras claves vía variables de entorno, no en el repositorio.
+
+6) Pruebas sencillas de carga
+   - Usar herramientas ligeras como `k6` para hacer pruebas básicas y ver si necesitas más recursos.
+
+
+
 
