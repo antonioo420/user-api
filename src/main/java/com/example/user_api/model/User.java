@@ -3,8 +3,6 @@ package com.example.user_api.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
 @Entity
 @Table(name = "app_user")

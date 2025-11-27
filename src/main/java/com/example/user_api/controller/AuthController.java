@@ -4,7 +4,6 @@ import com.example.user_api.dto.UserResponse;
 import com.example.user_api.dto.LoginRequest;
 import com.example.user_api.dto.RegisterRequest;
 import com.example.user_api.service.AuthService;
-import com.example.user_api.model.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

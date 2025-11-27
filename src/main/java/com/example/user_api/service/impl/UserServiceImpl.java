@@ -1,14 +1,11 @@
-package com.example.user_api.security.impl;
+package com.example.user_api.service.impl;
 
 import com.example.user_api.model.User;
 import com.example.user_api.repository.UserRepository;
 import com.example.user_api.service.UserService;
 import com.example.user_api.exception.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
